@@ -195,6 +195,7 @@ nib.save(image_normalized, fnamenorm) #save
 #Import of interictal normalised image
 interictal_norm, data_interictal_norm, dim_interictal_norm, header_interictal_norm, affine_interictal_norm = load_image(fnamenorm)
 
+#Comparing histograms (normalised and template)
 plt.hist(data_ictal_masked.flatten(), bins = 150, color='b')
 plt.hist(data_norminterictal.flatten(), bins = 100, color = 'y')
 plt.xlabel("Intensity")
@@ -205,3 +206,39 @@ plt.title("Ictal histogram vs interictal normalised histogram")
 plt.legend({'Ictal':'blue','Normalised interictal':'yellow'})
 plt.text(112, 55000,'Normalisation factor: ' + str(np.round(normfactor,2)))
 plt.show()
+
+
+
+# %%
+
+#Imatge of the difference
+#Generation of sustraction matrix from interictal normalized (mask was already applied) and ictal only with mask applied (as the normalisation is from interictal to ictal)
+sus =  data_ictal_in*mask  - data_interictal_norm
+
+
+sus_path = "generated_images/subtraction.nii" #file path of image
+subtraction_image = nib.Nifti1Image(sus, affine_ictal_in) #craete image
+nib.save(subtraction_image, sus_path) #save    
+
+
+# Importing image and its data
+subtraction, data_subtraction, dim_subtraction, header_subtraction, affine_subtraction = load_image(sus_path)
+
+
+
+# %%
+# ### Locating EZ
+
+
+mean = data_subtraction.mean() #mean of diff Intensity
+sd = data_subtraction.std() #sd of diff intensity
+
+llindar = mean + 2*sd 
+fusion = np.zeros([dim_subtraction[0], dim_subtraction[1], dim_subtraction[2]], dtype = 'float32') #matrius de 0s
+
+fusion = data_subtraction*(data_subtraction>=llindar)
+
+fusion_name = "generated_images/fusion.nii" #path
+fusion_image = nib.Nifti1Image(fusion, affine_subtraction) #Create image
+nib.save(fusion_image, fusion_name) #save
+
