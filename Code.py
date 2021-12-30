@@ -112,3 +112,96 @@ data_ictal_masked = data_ictal_in[(mask==True)] #same for ictal
 
 
 
+# %%
+
+# NORMALISATION
+
+# Intensity histogram for SPECTs without mask
+plt.hist(data_ictal_in.flatten(), bins = 'auto')
+plt.xlabel("Intensity")
+plt.ylabel("Frequency (in counts)")
+plt.ylim(0,1000000)
+plt.title("Histogram SPECT Ictal")
+plt.show()
+
+plt.hist(data_interictal_in.flatten(), bins = 'auto')
+plt.xlabel("Intensity")
+plt.ylabel("Frequency (in counts)")
+plt.title("Histogram SPECT Interictal")
+plt.show()
+
+
+# %%
+
+# Intensity histogram for SPECTs with mask
+freqs_ictal_masked, intensities_ictal_masked,_  = plt.hist(data_ictal_masked.flatten(), bins = 'auto')
+plt.xlabel("Intensity")
+plt.ylabel("Frequency (in counts)")
+plt.title("Histogram SPECT Ictal masked")
+plt.show()
+
+freqs_interictal_masked, intensities_interictal_masked,_ = plt.hist(data_interictal_masked.flatten(), bins = 'auto')
+
+plt.xlabel("Intensity")
+plt.ylabel("Frequency (in counts)")
+plt.title("Histogram SPECT Interictal with mask")
+plt.show()
+
+
+
+# %%
+# Ictal clearly has a wider range of intensities, the point is wether the high intensity values are related to the epileptogenic zone or not.
+
+# Option 1:
+# Computing the normalisation factor as the ratio between the total intensity of the ictal image ans the total intensity of the interictal image
+
+norm_factor_meanimask = data_ictal_masked.sum()/data_interictal_masked.sum() #calculem el factor de normalització com la suma de les intensitats de l'ictal entre la suma de les intensitats de l'interictal
+print("Normalisation factor for voxels inside the mark: "+str(norm_factor_meanimask))
+norm_factor_meani = data_ictal_in.sum()/data_interictal_in.sum()
+print("Normalisation factor of whole image: "+str(norm_factor_meani))
+# We observ that the ratios are different, probably meaning that the focus Epileptogenic focus determining this difference and that another approach should be implemented
+
+# Option 2:
+# Computing the same ratio but with the voxels outside the image, which do not contain the epileptogenic focus
+
+data_interictal_outmask = data_interictal_in[(mask==False)] #agafem aquells valors de interictal NO inclosos dins la màscara
+data_ictal_outmask = data_ictal_in[(mask==False)] #agafem aquells valors de ictal NO inclosos dins la màscara
+norm_factor_meani_outmask = data_ictal_outmask.sum()/data_interictal_outmask.sum() #calculem el factor de normalització com la suma de les intensitats de l'ictal entre la suma de les intensitats de l'interictal
+print("Normalisation factor for voxels outside the mask: "+str(norm_factor_meani_outmask))
+#Other approaches are due to be studied before choosing the best option
+
+
+#Option 3:
+#Normalising with the quotient of the most frequent intensity of ictal and interictal masked images
+max_interictal = float (data_interictal_masked[np.where(freqs_interictal_masked == max(freqs_interictal_masked))])
+max_ictal = float (data_ictal_masked[np.where(freqs_ictal_masked == max(freqs_ictal_masked))])
+normfactor = max_ictal/max_interictal
+print('Normalisation factor of quotient of the most frequent intensity of ictal and interictal masked images:'+str(normfactor))
+
+
+
+# %%
+#OPTION 3 WAS CHOSEN
+
+#Applying normalisation factor
+data_norminterictal = data_interictal_in*mask*normfactor #apply the normalisation factor
+fnamenorm = "generated_images/norminterictal.nii" #path
+affinenorm = affine_interictal_in #the affine space of the image and the normalised is the same
+image_normalized = nib.Nifti1Image(data_norminterictal, affinenorm) #Generating the image
+image_normalized.set_data_dtype(np.float32) 
+nib.save(image_normalized, fnamenorm) #save
+
+
+#Import of interictal normalised image
+interictal_norm, data_interictal_norm, dim_interictal_norm, header_interictal_norm, affine_interictal_norm = load_image(fnamenorm)
+
+plt.hist(data_ictal_masked.flatten(), bins = 150, color='b')
+plt.hist(data_norminterictal.flatten(), bins = 100, color = 'y')
+plt.xlabel("Intensity")
+plt.ylabel("Frequency (in counts)")
+plt.xlim(20,180)
+plt.ylim(0,75000)
+plt.title("Ictal histogram vs interictal normalised histogram")
+plt.legend({'Ictal':'blue','Normalised interictal':'yellow'})
+plt.text(112, 55000,'Normalisation factor: ' + str(np.round(normfactor,2)))
+plt.show()
