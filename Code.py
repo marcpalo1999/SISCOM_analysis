@@ -242,3 +242,16 @@ fusion_name = "generated_images/fusion.nii" #path
 fusion_image = nib.Nifti1Image(fusion, affine_subtraction) #Create image
 nib.save(fusion_image, fusion_name) #save
 
+
+
+# %%
+# Fusion of focus
+# Plot per separat
+
+plotting.plot_epi(fusion_name, cut_coords = coords)
+plotting.plot_anat(rm, cut_coords = coords)
+
+# Plot fusió RM and focus
+plotting.plot_roi(fusion_name,rm,cut_coords = coords)
+
+
