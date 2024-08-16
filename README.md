@@ -1,14 +1,14 @@
-# P7: SISCOM Analysis
+# SISCOM Analysis
 
-This GitHub repository contains the archives of the 7th session of practice of the subject Medical aplication to Engineering I (AME I). The main goal of using a Version Control System such as GitHub is to properly handle code implementation as well as for organisation and correct programming habits.
+The aim of this project is to determine the Epileptogen Zone (EZ) of a patient with epileptic seizures to surgically remove the area and thus treat the condition. SPECT and MRI have been used to detect the area.
 
 This repository contains:
 
 * Readme.md
 * Code.py 
-  * Contains the code of the session
+  * Contains the code of the project
 * Report
-  * Contains the written document of the session
+  * Contains the written document of the project
 * images
   * contains the images used by the code to obtain the focus of the epilepsia
     * rm.nii
